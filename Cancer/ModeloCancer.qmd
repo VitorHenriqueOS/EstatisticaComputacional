@@ -1,0 +1,72 @@
+---
+title: "Modelo de reconhecimento de câncer"
+author: "Vitor Henrique"
+format: html
+editor: visual
+lang: pt-br
+---
+
+## 
+
+Faremos 3 modelos, Knn, Arvore de decisão e Floresta aleatória, que dado algumas informações diz se o câncer é Benigno ou Maligno.
+
+## Modelo Knn (k vizinhos mais próximos)
+
+Vamos começar instalando a bublioteca `class` para usar a função `knne depois` ler os dados que estao em um arquivo csv, e seperando 80% para treino e 20% para teste.
+
+```{r}
+library(class)
+dados <- read.csv("cancer.csv", header = TRUE)
+set.seed(1800)
+dados <- dados[sample(nrow(dados)),]
+n <- round(0.8*nrow(dados))
+treinamento <- dados[1:n,]
+teste <- dados[-(1:n),]
+```
+
+Em seguida vamos padronizar os dados, isto é, deixar os dados em uma mesma 'escala'
+
+```{r}
+treino_padronizado <- scale(treinamento[,-1])
+teste_padronizado <- scale(teste[,-1])
+```
+
+Agora usaremos a funçao para os k vizinhos mais próximos, com k de 1 até 5
+
+```{r}
+modelo <- knn(treino_padronizado,teste_padronizado,treinamento$diagnosis,k = 1)
+mean(modelo == teste$diagnosis)
+
+modelo <- knn(treino_padronizado,teste_padronizado,treinamento$diagnosis,k = 2)
+mean(modelo == teste$diagnosis)
+
+modelo <- knn(treino_padronizado,teste_padronizado,treinamento$diagnosis,k = 3)
+mean(modelo == teste$diagnosis)
+
+modelo <- knn(treino_padronizado,teste_padronizado,treinamento$diagnosis,k = 4)
+mean(modelo == teste$diagnosis)
+
+modelo <- knn(treino_padronizado,teste_padronizado,treinamento$diagnosis,k = 5)
+mean(modelo == teste$diagnosis)
+```
+
+Como visto nos exemplos acima nem sempre um maior número de vizinho é a melhor opção. Caso `set.seed()`não fosse usado, a cada exucução o resultado seria disdinto.
+
+## Modelo da Árvore de decisão
+
+Para esse modelo usaremos outras bibliotecas, os dados de treinamento e teste serão os mesmos.
+
+```{r}
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+modeloArvore <- rpart(formula = diagnosis~.,data = treinamento, method = "class")
+rpart.plot(modeloArvore, extra = 101)
+
+previsao <- predict(modeloArvore,newdata = teste, type = "class")
+mean(previsao == teste$diagnosis)
+```
+
+## Modelo da Floresta Aleatória

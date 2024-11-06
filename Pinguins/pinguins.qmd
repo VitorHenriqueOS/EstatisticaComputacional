@@ -1,0 +1,121 @@
+---
+title: "Tutorial para classificação de puinguins"
+author: "Vitor Henrique"
+format: html
+editor: visual
+lang: "pt"
+---
+
+## Objetivo do tutorial
+
+O objetivo desse tutorial é criar um modelo de classificção que seja capaz de prever a espécie de um pinguin.
+
+## Lendo o conjunto
+
+Vamos iniciar lendo o pacote \`palmerpenguins´,salvando o conjunto em um objeto chamado pinguins e mostrando a estrutura dos dados.
+
+```{r}
+library(palmerpenguins)
+pinguins <- penguins
+str(pinguins)
+```
+
+A seguir vamos imprimir um resumo estatísticos de cada uma das variaveis dos dados.
+
+```{r}
+summary(pinguins)
+```
+
+A partir do resumo foi identificados dados faltantes, vamos remové-los.
+
+```{r}
+pinguins <- na.omit(pinguins)
+summary(pinguins)
+```
+
+## Dividindo dados para treinamento e teste
+
+```{r}
+set.seed(1536)
+pinguins <- pinguins[sample(nrow(pinguins)),]
+n = round(0.8*nrow(pinguins))
+treinamento = pinguins[1:n,]
+teste = pinguins[-(1:n),]
+```
+
+## Visualização de dados
+
+Vamos criar um bloxplot com aespécie no eixo x e o tamanho da asa no eixo y.
+
+```{r}
+library(ggplot2)
+ggplot(treinamento, aes(x = species, y = flipper_length_mm))+
+  geom_boxplot()+
+  theme_minimal()
+```
+
+Agora vamos criar gráficos de pontos coloridos por especie.
+
+x = peso e y = tamanho do bico.
+
+```{r}
+ggplot(treinamento, aes(x = body_mass_g, y = bill_length_mm, col = species))+
+  geom_point()+
+  theme_minimal()
+```
+
+x = peso e y = tamanho da asa.
+
+```{r}
+ggplot(treinamento, aes(x = body_mass_g, y = flipper_length_mm, col = species))+
+  geom_point()+
+  theme_minimal()
+```
+
+x = peso e y = profundidade do bico.
+
+```{r}
+ggplot(treinamento, aes(x = body_mass_g, y = bill_depth_mm, col = species))+
+  geom_point()+
+  theme_minimal()
+```
+
+x = profundidade do bico e y = tamanho do bico.
+
+```{r}
+ggplot(treinamento, aes(x = bill_depth_mm, y = bill_length_mm, col = species))+
+  geom_point()+
+  theme_minimal()
+```
+
+x = profundidade do bico e y= tamnho da asa.
+
+```{r}
+ggplot(treinamento, aes(x = bill_depth_mm, y = flipper_length_mm, col = species))+
+  geom_point()+
+  theme_minimal()
+```
+
+x = tamanho do bico e y= tamnho da asa.
+
+```{r}
+ggplot(treinamento, aes(x = bill_length_mm, y = flipper_length_mm, col = species))+
+  geom_point()+
+  theme_minimal()
+```
+
+## Classificando o primeiro do teste
+
+A seguir um teste que considera a distãncia.
+
+```{r}
+classificacao <- c()
+for(j in 1:nrow(teste)){
+  distancias <- c()
+  for(i in 1:nrow(treinamento)){
+  distancias[i] <- sqrt((teste$flipper_length_mm[j] - treinamento$flipper_length_mm[i])**2 + (teste$bill_length_mm[j] - treinamento$bill_length_mm[i])**2 + (teste$bill_depth_mm[j] - treinamento$bill_depth_mm[i])**2)
+  }
+  classificacao[j] <- as.character(treinamento$species[order(distancias)[1]])
+}
+mean(classificacao == teste$species)
+```
